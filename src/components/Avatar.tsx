@@ -1,10 +1,10 @@
-import { useEffect, useState, type ChangeEvent } from 'react'
+import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
 import { supabase } from '../supabase/supabaseClient'
 
 interface AvatarProps {
   url: string | null
   size: number
-  onUpload: (event: ChangeEvent<HTMLInputElement>, filePath: string) => void
+  onUpload: (event: FormEvent<HTMLFormElement>, filePath: string) => void
 }
 
 export default function Avatar({ url, size, onUpload }: AvatarProps) {

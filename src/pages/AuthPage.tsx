@@ -1,21 +1,23 @@
-import { useState } from "react";
-import { supabase } from "../supabase/supabaseClient";
+import { useEffect, useState } from "react";
+import { useAuth } from "../hooks/useAuth";
 
 export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+  const { signUp } = useAuth();
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { error } = await signUp({
       email,
       password,
-      options: {
-        emailRedirectTo: 'http://localhost:5173/account'
-      }
+      // options: {
+      //   emailRedirectTo: 'http://localhost:5173/account'
+      // }
     });
 
     if (error) {
@@ -24,7 +26,7 @@ export default function AuthPage() {
       alert("Check your email for the login link!");
     }
     setLoading(false);
-  };
+  };  
 
   return (
     <div className="row flex flex-center">
@@ -33,7 +35,7 @@ export default function AuthPage() {
         <p className="description">
           Sign in via magic link with your email below
         </p>
-        <form className="form-widget" onSubmit={handleLogin}>
+        <form className="form-widget" onSubmit={handleSubmit}>
           <div>
             <input
               className="inputField"

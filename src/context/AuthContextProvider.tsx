@@ -1,28 +1,22 @@
 import { useEffect, useState, type PropsWithChildren } from "react";
-import { AuthContext, type AuthStatus } from "./auth.context";
 import { supabase } from "../supabase/supabaseClient";
 import type { Session, User } from "@supabase/supabase-js";
+import { AuthContext } from "./auth.context";
+import { useNavigate } from "react-router";
 
 export const AuthContextProvider = ({ children }: PropsWithChildren) => {
-  const [authStatus, setAuthStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const Navigate = useNavigate()
 
-  const getInitialSession = () => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        console.log(authStatus)
-        setSession(null);
-        setUser(null);
-        setAuthStatus("not-authenticated");
-        return;
-      }
-      console.log(authStatus)
-      
-      setSession(session);
-      setUser(session?.user || null);
-      setAuthStatus("authenticated");
-    });
+  const getInitialSession = async () => {
+    const {
+      data: { session },
+      error,
+    } = await supabase.auth.getSession();
+    if (error) throw error;
+    setSession(session);
+    setUser(session?.user ?? null);
   };
 
   useEffect(() => {
@@ -30,23 +24,15 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
   }, []);
 
   useEffect(() => {
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (!session) {
-          setSession(null);
-          setUser(null);
-          setAuthStatus("not-authenticated");
-          return;
-        }
-
-        setSession(session);
-        setUser(session?.user || null);
-        setAuthStatus("authenticated");
-      }
-    );
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
 
     return () => {
-      authListener.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
@@ -55,8 +41,17 @@ export const AuthContextProvider = ({ children }: PropsWithChildren) => {
       value={{
         session,
         user,
-        authStatus,
-        isAuthenticated: authStatus === "authenticated",
+        // signIn: async (credentials) =>
+        //   await supabase.auth.signInWithPassword(credentials),
+        signUp: async (credentials) =>
+          await supabase.auth.signUp({
+            ...credentials,
+            options: { emailRedirectTo: "http://localhost:5173/account" },
+          }),
+        signOut: async () => {
+          Navigate('/')
+          return await supabase.auth.signOut();
+        },
       }}
     >
       {children}
