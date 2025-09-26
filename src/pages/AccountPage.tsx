@@ -2,12 +2,14 @@ import { useState, useEffect, type FormEvent } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { supabase } from "../supabase/supabaseClient";
 import Avatar from "../components/Avatar";
+import { useNavigate } from "react-router";
 
 export default function AccountPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [username, setUsername] = useState<string | null>(null);
   const [website, setWebsite] = useState<string | null>(null);
   const [avatar_url, setAvatarUrl] = useState<string | null>(null);
+  const navigate = useNavigate()
 
   const { session, signOut } = useAuth();
 
@@ -114,7 +116,10 @@ export default function AccountPage() {
       </div>
 
       <div>
-        <button className="button block" type="button" onClick={signOut}>
+        <button className="button block" type="button" onClick={() => {
+          signOut()
+          navigate('/')
+          }}>
           Sign Out
         </button>
       </div>
